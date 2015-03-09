@@ -43,7 +43,7 @@ cat(paste0("## sigma = ", sigma,"\n"))
 #-----------------------#
 cat("# perform kmeans clustering\n")
 task = makeClusterTask(data = dat[, -1])
-learner = makeLearner("cluster.kmeans", par.vals = list(centers = 3))
+learner = makeLearner("cluster.kmeans", par.vals = list(centers = n))
 model = train(learner, task, subset = training.set)
 
 #-----------------------#
