@@ -10,9 +10,10 @@ test.R is a simple learner that uses RBF kernerl-based SVM and K-means for binar
 
 The dataset used is the breast-cancer_scaled.txt in the format of [libSVM](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html).
 
-```R
 #### Demo
 Here is what I got from `source` test.R
+
+```R
 > source("test.R")
 # load library
 Loading required package: ParamHelpers
