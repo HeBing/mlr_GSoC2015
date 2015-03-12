@@ -2,7 +2,7 @@
 This is the test for GSoC 2015 [project mlr](https://github.com/berndbischl/mlr/wiki/GSOC-2015:-Implement-several-ensemble-SVMs-in-mlr):
 * `test.R`: a simple learner that uses RBF kernel SVM and K-means for binary classification
 * `CSVM.R`: clustered SVM implemented using `mlr` [[ref]](http://jmlr.org/proceedings/papers/v31/gu13b.html)
-* `CSVM_realdata.R`: reproduce results for Synthetic dataset (Section 4.1), [SVMGUIDE1](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html#svmguide1) and [IJCNN1](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html#ijcnn1).
+* `CSVM_realdata.R`: reproduce CSVM results in [[ref]](http://jmlr.org/proceedings/papers/v31/gu13b.html) for Synthetic dataset (Section 4.1), [SVMGUIDE1](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html#svmguide1) and [IJCNN1](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html#ijcnn1).
 
 #### `test.R`
 `test.R` is a simple learner that uses RBF kernerl-based SVM and K-means for binary classification.
