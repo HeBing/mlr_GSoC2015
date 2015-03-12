@@ -74,7 +74,7 @@ trainCSVM <- function(k, C, lambda, label, feature) {
       clusterKSVM[[i]] = datCSVM[clusterSet[1],1]
     } else {
       task2 = makeClassifTask(data = datCSVM, target = "label")
-      learner2 = makeLearner("classif.ksvm", par.vals = list(kernel = "vanilladot", C = C))
+      learner2 = makeLearner("classif.ksvm", par.vals = list(kernel = "vanilladot", C = C, scaled=FALSE))
       model2 = train(learner2, task2, subset = clusterSet)
       clusterKSVM[[i]] = model2
     }

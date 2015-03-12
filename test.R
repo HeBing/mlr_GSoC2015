@@ -16,7 +16,7 @@ library(kernlab)
 # read and process data #
 #-----------------------#
 cat("# read data: breast-cancer_scaled\n")
-dat = read.table("./breast-cancer_scaled.txt", stringsAsFactor = F)
+dat = read.table("./data/breast-cancer_scaled.txt", stringsAsFactor = F)
 dat[,1] = as.factor(as.character(dat[,1]))
 for(i in 2:ncol(dat)) {
   dat[,i] = as.numeric(unlist(strsplit(dat[,i], split = ":"))[(1:(nrow(dat)*2)) %% 2 == 0])
@@ -93,4 +93,4 @@ cat("# Show prediction results:")
 ksvmPred = as.factor(ksvmPred)
 print(table(ksvmPred, dat[test.set,1]))
 
-
+print(sum(diag(table(ksvmPred, dat[test.set,1])))/length(test.set)
