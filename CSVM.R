@@ -29,6 +29,7 @@ transformCSVM <- function(feature, clusterMembership, lambda) {
     datTilde[i,1:(ncol(feature))] = 1/sqrt(lambda)*feature[i,]
     datTilde[i, (clusterMembership[i]*(ncol(feature))+1):((clusterMembership[i]+1)*(ncol(feature)))] = feature[i,]
   }
+  # browser()
   return(datTilde)
 }
 
@@ -64,54 +65,32 @@ trainCSVM <- function(k, C, lambda, label, feature) {
   # CSVM
   featureCSVM = transformCSVM(feature, clusterMembership, lambda)
   datCSVM = cbind(label = label, featureCSVM)
-  clusterKSVM = list()
-  length(clusterKSVM) = k
+  taskCSVM = makeClassifTask(data = datCSVM, target = "label")
+  learnerCSVM = makeLearner("classif.ksvm", 
+    par.vals = list(kernel = "vanilladot", C = C))
+  modelCSVM = train(learnerCSVM, taskCSVM)
 
-  for(i in 1:k) {
-    cat(paste0("## \t for cluster ",i,"\n"))
-    clusterSet =  (1:nrow(datCSVM))[clusterMembership == i]
-    if( length(unique(datCSVM[clusterSet,1])) == 1) { # one label in this cluster
-      clusterKSVM[[i]] = datCSVM[clusterSet[1],1]
-    } else {
-      task2 = makeClassifTask(data = datCSVM, target = "label")
-      learner2 = makeLearner("classif.ksvm", par.vals = list(kernel = "vanilladot", C = C, scaled=FALSE))
-      model2 = train(learner2, task2, subset = clusterSet)
-      clusterKSVM[[i]] = model2
-    }
-  }
-
-  return(list(clusterModel = model, clusterKSVM = clusterKSVM, lambda = lambda))
+  return(list(modelCluster = model, modelCSVM = modelCSVM, lambda = lambda))
 }
 
 
 #-----------------------#
 # predict               #
 # newdata: data.frame   #
-# trainedKSVM: model    #
+# trainedCSVM: model    #
 #   output by trainCSVM #
 #-----------------------#
-predictCSVM <- function(newdata, trainedKSVM) {
-  # browser()
-  clusterPred = predict(trainedKSVM$clusterModel, newdata = newdata)
+predictCSVM <- function(newdata, trainedCSVM) {
+
+  clusterPred = predict(trainedCSVM$modelCluster, newdata = newdata)
   clusterPred = clusterPred$data$response
   
-  newdataCSVM = transformCSVM(newdata, clusterPred, trainedKSVM$lambda)
+  newdataCSVM = transformCSVM(newdata, clusterPred, trainedCSVM$lambda)
   newdataCSVM = cbind(label = rep(NA, nrow(newdataCSVM)), newdataCSVM)
 
-  predCSVM = character(nrow(newdataCSVM))
-  clusterKSVM = trainedKSVM$clusterKSVM
+  predCSVM = predict(trainedCSVM$modelCSVM, newdata = newdataCSVM)
 
-  for(i in 1:k) {
-    testClusterSet = (1:nrow(newdataCSVM))[clusterPred == i]
-    if(length(clusterKSVM[[i]]) == 1) { # if cluster has one label
-      predCSVM[clusterPred == i] = as.character(clusterKSVM[[i]])
-    } else {
-      tmpPred = predict(clusterKSVM[[i]], newdata = newdataCSVM[testClusterSet,])
-      predCSVM[clusterPred == i] =  as.character(tmpPred$data$response)
-    }
-  }
-
-  return(predCSVM)
+  return(predCSVM$data$response)
 }
 
 

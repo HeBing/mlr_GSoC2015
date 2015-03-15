@@ -37,7 +37,7 @@ label = dat[training.set,1]
 myTrainedModel = trainCSVM(k = k, C = C, lambda = lambda, label = label, feature = feature)
 
 # CSVM predict
-myCSVMpred = predictCSVM(newdata = dat[test.set,-1], trainedKSVM = myTrainedModel)
+myCSVMpred = predictCSVM(newdata = dat[test.set,-1], trainedCSVM = myTrainedModel)
 
 # reproduce Figure 1 in paper, panel 3
 plot(dat[test.set,-1], col = as.numeric(myCSVMpred), xlab="feature 1", ylab="feature 2")
@@ -55,6 +55,7 @@ legend("topright", legend = unique(myCSVMpred), col = as.numeric(unique(myCSVMpr
 dat = read.table("./data/svmguide1.tr", stringsAsFactor = F)
 dat[dat[,1] == 0,1] = -1
 dat[,1] = as.factor(as.character(dat[,1]))
+
 for(i in 2:ncol(dat)) {
   dat[,i] = as.numeric(unlist(strsplit(dat[,i], split = ":"))[(1:(nrow(dat)*2)) %% 2 == 0])
 }
@@ -73,62 +74,36 @@ testDat = dat
 
 # set parameter
 k = 8
-C = 100 ## {1,5,10,20,50,100}
-lambda = 10 ## {1,5,10,20,50,100}
+Cs = c(1,5,10,20,50,100)
+lambdas = c(1,5,10,20,50,100)
 feature = trainDat[,-1]
 label = trainDat[,1]
 
-# CSVM train
-myTrainedModel = trainCSVM(k = k, C = C, lambda = lambda, label = label, feature = feature)
+accuCSVM = matrix(NA, nrow=length(Cs),ncol=length(lambdas))
 
-# CSVM predict
-myCSVMpred = predictCSVM(newdata = testDat[,-1], trainedKSVM = myTrainedModel)
-
-# reproduce Figure 2
-table(myCSVMpred, testDat$response)
-
-
-
-#------------------------#
-# real dataset:
-#   data/ijcnn1.tr
-#	test/ijcnn1.t
-# ref: http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html#ijcnn1
-#------------------------#
-
-## read in train data
-dat = read.table("./data/ijcnn1.tr", stringsAsFactor = F)
-dat[dat[,1] == 0,1] = -1
-dat[,1] = as.factor(as.character(dat[,1]))
-for(i in 2:ncol(dat)) {
-  dat[,i] = as.numeric(unlist(strsplit(dat[,i], split = ":"))[(1:(nrow(dat)*2)) %% 2 == 0])
+for(i in 1:length(Cs)) {
+  for(j in 1:length(lambdas)) {
+    cat(paste0("C = ", Cs[i], ", lambda = ", lambdas[j],"\n"))
+    # CSVM train
+    myTrainedModel = trainCSVM(k = k, C = Cs[i], lambda = lambdas[j], label = label, feature = feature)
+    # CSVM predict
+    myCSVMpred = predictCSVM(newdata = testDat[,-1], trainedCSVM = myTrainedModel)
+    # reproduce Figure 2
+    accuCSVM[i,j] = sum(diag(table(myCSVMpred, testDat$response)))/nrow(testDat)
+  }
 }
-colnames(dat)[1] = "response"
-trainDat = dat
 
-## read in train data
-dat = read.table("./data/ijcnn1.t", stringsAsFactor = F)
-dat[dat[,1] == 0,1] = -1
-dat[,1] = as.factor(as.character(dat[,1]))
-for(i in 2:ncol(dat)) {
-  dat[,i] = as.numeric(unlist(strsplit(dat[,i], split = ":"))[(1:(nrow(dat)*2)) %% 2 == 0])
+# compare to linear SVM
+Cs = c(0.01, 0.1, 1, 10, 100)
+accuSVM = numeric(length(Cs))
+for(i in 1:length(Cs)) {
+  cat(paste0("C = ", Cs[i],"\n"))
+  task1 = makeClassifTask(data = trainDat, target="response")
+  learner1 = makeLearner("classif.ksvm", par.vals = list(kernel = "vanilladot", C = Cs[i], scaled = FALSE, shrinking = FALSE))
+  model1 = train(learner1,task1)
+  myCSVMpred = predict(model1, newdata = testDat)
+  myCSVMpred = myCSVMpred$data$response
+  accuSVM[i] = sum(diag(table(myCSVMpred, testDat$response)))/nrow(testDat)
+  print(accuSVM[i])
 }
-colnames(dat)[1] = "response"
-testDat = dat
-
-# set parameter
-k = 8
-C = 100 ## {1,5,10,20,50,100}
-lambda = 10 ## {1,5,10,20,50,100}
-feature = trainDat[,-1]
-label = trainDat[,1]
-
-# CSVM train
-myTrainedModel = trainCSVM(k = k, C = C, lambda = lambda, label = label, feature = feature)
-
-# CSVM predict
-myCSVMpred = predictCSVM(newdata = testDat[,-1], trainedKSVM = myTrainedModel)
-
-# reproduce Figure 2
-table(myCSVMpred, testDat$response)
 
